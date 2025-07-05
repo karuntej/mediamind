@@ -8,6 +8,10 @@ Streamlit front-end for MediaMind PDF Chat (LLM + Retrieval)
 • View a thumbnail of each cited PDF page
 """
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 import requests, textwrap, re, html
 import fitz                           # PyMuPDF
@@ -19,23 +23,13 @@ from src.utils_pdf import render_page_png   # already imported earlier
 ###############################################################################
 # CONFIG
 ###############################################################################
-API_URL   = "http://localhost:8001/chat"   # FastAPI endpoint
+API_URL   = "http://localhost:8000/chat"   # FastAPI endpoint
 TOP_K_MAX = 10
 PAGE_ZOOM = 1.4                           # thumbnail DPI scale
 
 ###############################################################################
 # UTILS
 ###############################################################################
-@functools.lru_cache(maxsize=256)
-def render_page_png(pdf_path: str, page_no: int, zoom: float = PAGE_ZOOM) -> bytes:
-    """
-    Return raw PNG bytes for a single PDF page.
-    Cached for speed so repeated renders don't hit the disk.
-    """
-    doc = fitz.open(pdf_path)
-    page = doc.load_page(page_no - 1)
-    pix  = page.get_pixmap(dpi=72 * zoom)
-    return pix.tobytes("png")
 
 
 def highlight_terms(query: str, text: str, max_chars: int = 400) -> str:

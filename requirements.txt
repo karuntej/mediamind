@@ -9,3 +9,4 @@ tqdm
 spacy
 streamlit
 uvicorn
+urllib3==1.26.18
