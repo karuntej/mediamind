@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 import os
 import sqlite3
-import yaml
+try:
+    import yaml
+    _yaml_load = yaml.safe_load
+except Exception:
+    from src.simpleyaml import safe_load as _yaml_load
 import logging
 from pathlib import Path
 import boto3
@@ -16,7 +20,7 @@ def load_config():
         raise FileNotFoundError("config.yaml not found")
     
     with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+        config = _yaml_load(f)
     
     return config
 
