@@ -1,3 +1,4 @@
+boto3
 fastapi
 pydantic
 faiss-cpu
@@ -5,6 +6,7 @@ numpy
 sentence-transformers
 requests
 PyMuPDF
+pyyaml
 tqdm
 spacy
 streamlit

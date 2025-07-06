@@ -1,61 +1,40 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
-import faiss, sqlite3, json, numpy as np
-from sentence_transformers import SentenceTransformer
-from pathlib import Path
-from api.ollama_client import ollama_generate
+import json, sqlite3, io, fitz
+from src.storage import download_pdf
 
-DATA = Path(__file__).resolve().parents[1] / "data"
-index = faiss.read_index(str(DATA / "faiss.index"))
-con   = sqlite3.connect(str(DATA / "meta.db"), check_same_thread=False)
-model = SentenceTransformer("all-MiniLM-L12-v2")
-
-app = FastAPI(title="MediaMind PDF API", version="0.1")
-
-@app.get("/ping")
-def ping():
-    return {"status": "ok", "routes": ["/chat (POST)", "/docs"]}
+app = FastAPI()
 
 class Query(BaseModel):
     question: str
-    top_k:   int = 5
-
-@app.get("/")
-def root(): return {"status":"alive","docs":"/docs","chat":"/chat"}
+    top_k:    int
 
 def dense_search(q: str, k: int):
-    vec = model.encode([q], normalize_embeddings=True).astype("float32")
-    D,I = index.search(vec, k)
-    rows=[]
-    for rank, idx in enumerate(I[0]):
-        chunk_id, source, path, loc, text = con.execute(
-            "SELECT chunk_id, source, doc_path, loc, text FROM meta WHERE id=?",
-            (int(idx),)).fetchone()
-        rows.append({"rank":rank,"score":float(D[0][rank]),"doc_path":path,
-                     "loc":json.loads(loc),"text":text})
-    return rows
+    # your existing FAISS lookup logic…
+    # returns list of {"doc_path": key, "loc":{…}, "score":float, "text": str}
+    raise NotImplementedError
+
+def synthesize_answer(q: str, passages: list):
+    # your existing LLM synthesis call…
+    raise NotImplementedError
 
 @app.post("/chat")
 def chat(q: Query):
-    # 1. retrieve evidence chunks
     passages = dense_search(q.question, q.top_k)
+    answer   = synthesize_answer(q.question, passages)
+    return JSONResponse({"answer": answer, "passages": passages})
 
-    # 2. synthesize answer using Llama-3
-    answer = synthesize_answer(q.question, passages)
-
-    # 3. include both answer and passages in the response
-    return {
-        "question": q.question,
-        "answer"  : answer,
-        "passages": passages
-    }
-
-
-def synthesize_answer(question: str, passages: list[dict]) -> str:
-    ctx = "\n".join(f"[{i}] {p['text']}" for i, p in enumerate(passages))
-    prompt = (
-        "Answer the user question using only the numbered context. "
-        "Cite passages like [0], [1].\n\n### Context\n"
-        f"{ctx}\n\n### Question\n{question}\n### Answer:\n"
-    )
-    return ollama_generate(prompt, model="llama3.2:latest")
+@app.get("/preview")
+def preview(key: str, page: int = 1):
+    """
+    Render page N of the PDF as PNG.
+    """
+    try:
+        data = download_pdf(key)
+        doc  = fitz.open(stream=data, filetype="pdf")
+        pix  = doc.load_page(page-1).get_pixmap()
+        img  = pix.tobytes("png")
+        return StreamingResponse(io.BytesIO(img), media_type="image/png")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

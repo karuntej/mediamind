@@ -1,0 +1,10 @@
+s3:
+  endpoint_url: http://localhost:9000
+  bucket:      mediamind
+  raw_prefix:  raw/raw/pdf/       # ← update this!
+  processed_prefix: processed/
+  aws_access_key_id:     media
+  aws_secret_access_key: mind1234
+
+local:
+  data_dir: data
