@@ -17,6 +17,11 @@ if [ ! -f "$SCRIPT_PATH" ]; then
     exit 1
 fi
 
+# Activate virtual environment if present
+if [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+fi
+
 # Run the script with PYTHONPATH set to current directory
 echo "🚀 Running $SCRIPT_PATH with PYTHONPATH=."
-PYTHONPATH=. python "$SCRIPT_PATH" "$@" 
+PYTHONPATH=. python "$SCRIPT_PATH" "$@"
