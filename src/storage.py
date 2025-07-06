@@ -1,8 +1,13 @@
-import io, yaml
+import io
+try:
+    import yaml
+    _yaml_load = yaml.safe_load
+except Exception:
+    from src.simpleyaml import safe_load as _yaml_load
 import boto3
 
 # load S3 config
-_cfg = yaml.safe_load(open("config.yaml"))
+_cfg = _yaml_load(open("config.yaml"))
 _s3 = _cfg["s3"]
 
 # init S3 client (works for AWS or MinIO)

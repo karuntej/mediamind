@@ -2,7 +2,11 @@
 """
 Test script to verify MinIO connection and configuration
 """
-import yaml
+try:
+    import yaml
+    _yaml_load = yaml.safe_load
+except Exception:
+    from src.simpleyaml import safe_load as _yaml_load
 import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -18,7 +22,7 @@ def test_minio_connection():
         return False
     
     with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+        config = _yaml_load(f)
     
     # Extract S3 config
     s3_config = config['s3']

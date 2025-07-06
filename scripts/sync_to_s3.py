@@ -1,11 +1,15 @@
 import os
 import pathlib
 import boto3
-import yaml
+try:
+    import yaml
+    _yaml_load = yaml.safe_load
+except Exception:
+    from src.simpleyaml import safe_load as _yaml_load
 import logging
 
 # ── 1) load config ────────────────────────────────────────────────────────
-cfg = yaml.safe_load(open("config.yaml"))
+cfg = _yaml_load(open("config.yaml"))
 s3_cfg = cfg["s3"]
 local_root = pathlib.Path(cfg["local"]["data_dir"])  # e.g. "data/"
 
