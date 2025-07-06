@@ -4,6 +4,13 @@ A media processing and storage system with MinIO S3-compatible storage.
 
 ## Setup
 
+### Create a virtual environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
 ### Install Dependencies
 
 ```bash
