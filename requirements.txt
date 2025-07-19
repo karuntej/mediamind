@@ -10,3 +10,5 @@ spacy
 streamlit
 uvicorn
 urllib3
+pytesseract
+pillow
